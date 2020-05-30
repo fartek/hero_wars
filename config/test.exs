@@ -8,3 +8,11 @@ config :hero_wars, HeroWarsWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+config :hero_wars,
+  modules: [
+    hero_supervisor: Support.Doubles.HeroSupervisor,
+    hero_server: Support.Doubles.HeroServer,
+    world: Support.Doubles.World
+  ],
+  test_utils: [default_otp_app: :hero_wars]

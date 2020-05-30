@@ -1,6 +1,6 @@
 defmodule HeroWars.Game.HeroSupervisor do
   alias __MODULE__
-  alias HeroWars.Game.{HeroServer, World}
+  alias HeroWars.Game.HeroServer
 
   use DynamicSupervisor
 
