@@ -8,6 +8,8 @@ defmodule HeroWars.Game.World do
   1 - wall tile
   """
 
+  alias HeroWars.Game.Hero
+
   @world [
     [1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
@@ -21,11 +23,7 @@ defmodule HeroWars.Game.World do
   @world_width @world |> Enum.at(0) |> length()
   @world_height length(@world)
 
-  @type x_pos :: non_neg_integer
-  @type y_pos :: non_neg_integer
-  @type position :: {x_pos, y_pos}
-
-  @spec walkable?(position) :: boolean
+  @spec walkable?(Hero.position()) :: boolean
   def walkable?({x_pos, y_pos}) do
     tile = @world |> Enum.at(y_pos) |> Enum.at(x_pos)
     tile == 0
@@ -35,7 +33,7 @@ defmodule HeroWars.Game.World do
   Note: for demo purposes, it is assumed that this function
   can never fail and returns a result in ~constant time.
   """
-  @spec random_walkable_position :: position
+  @spec random_walkable_position :: Hero.position()
   def random_walkable_position do
     max_x = @world_width - 1
     max_y = @world_height - 1
