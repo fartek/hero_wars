@@ -1,0 +1,31 @@
+<div phx-window-keydown="try-move" phx-window-keyup="try-attack">
+  <%= if @loading? do %>
+    Loading...
+  <% else %>
+    <%= if !@alive? do %>
+    <p class="death-text">
+      You are dead. You cannot perform any actions until you respawn.
+    </p>
+    <% end %>
+
+    <%= for line <- @world do %>
+      <div class="line">
+        <%= for tile <- line do %>
+          <div class="tile" style="background: <%= tile_color(tile) %>">
+            <%= case tile do %>
+              <% {:hero, name, _alive?} -> %>
+                <%= name %>
+              <% {:enemy, name, _alive?} -> %>
+                <%= name %>
+              <% _ -> %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <p class="instructions">
+      Use the arrow keys to move and spacebar to attack around you.
+    </p>
+  <% end %>
+</div>
