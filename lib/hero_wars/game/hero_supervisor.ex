@@ -1,4 +1,6 @@
 defmodule HeroWars.Game.HeroSupervisor do
+  @moduledoc false
+
   alias __MODULE__
   alias HeroWars.Game.HeroServer
 

@@ -32,6 +32,11 @@ defmodule HeroWars.Game.HeroServer do
     GenServer.call(pid, {:update_life_status, alive?})
   end
 
+  @spec make_alive_after_timeout(pid, Hero.position(), non_neg_integer) :: no_return
+  def make_alive_after_timeout(pid, new_position, respawn_timeout) do
+    Process.send_after(pid, {:make_alive, new_position}, respawn_timeout)
+  end
+
   @spec via_tuple(Hero.name()) :: {:via, Registry, {:hero_registry, Hero.name()}}
   defp via_tuple(name) do
     {:via, Registry, {:hero_registry, name}}
@@ -59,5 +64,16 @@ defmodule HeroWars.Game.HeroServer do
   def handle_call({:update_life_status, alive?}, _from, state) do
     new_state = %Hero{state | alive?: alive?}
     {:reply, new_state, new_state}
+  end
+
+  @impl true
+  def handle_info({:make_alive, {x_pos, y_pos}}, state) do
+    new_state = %Hero{state | alive?: true, x_pos: x_pos, y_pos: y_pos}
+    Process.send_after(self(), :update_world, 10)
+    {:noreply, new_state}
+  end
+
+  def handle_info(:update_world, state) do
+    {:noreply, state}
   end
 end
