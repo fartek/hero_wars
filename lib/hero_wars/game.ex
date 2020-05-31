@@ -6,6 +6,8 @@ defmodule HeroWars.Game do
 
   alias HeroWars.Game.{Hero, HeroServer, HeroSupervisor, World}
 
+  @respawn_timeout 5000
+
   @spec spawn_hero(Hero.name()) :: {:ok, Hero.t()} | {:error, term}
   def spawn_hero(name) do
     hero_server_module = Application.get_env(:hero_wars, :modules)[:hero_server] || HeroServer
@@ -35,7 +37,7 @@ defmodule HeroWars.Game do
     hero = HeroServer.current_state(name)
     proposed_position = {hero.x_pos, hero.y_pos - 1}
 
-    if World.walkable?(proposed_position) do
+    if hero.alive? && World.walkable?(proposed_position) do
       HeroServer.reposition(name, proposed_position)
     else
       hero
@@ -46,7 +48,7 @@ defmodule HeroWars.Game do
     hero = HeroServer.current_state(name)
     proposed_position = {hero.x_pos, hero.y_pos + 1}
 
-    if World.walkable?(proposed_position) do
+    if hero.alive? && World.walkable?(proposed_position) do
       HeroServer.reposition(name, proposed_position)
     else
       hero
@@ -57,7 +59,7 @@ defmodule HeroWars.Game do
     hero = HeroServer.current_state(name)
     proposed_position = {hero.x_pos - 1, hero.y_pos}
 
-    if World.walkable?(proposed_position) do
+    if hero.alive? && World.walkable?(proposed_position) do
       HeroServer.reposition(name, proposed_position)
     else
       hero
@@ -68,7 +70,7 @@ defmodule HeroWars.Game do
     hero = HeroServer.current_state(name)
     proposed_position = {hero.x_pos + 1, hero.y_pos}
 
-    if World.walkable?(proposed_position) do
+    if hero.alive? && World.walkable?(proposed_position) do
       HeroServer.reposition(name, proposed_position)
     else
       hero
@@ -78,21 +80,30 @@ defmodule HeroWars.Game do
   @spec attack(Hero.name()) :: :ok
   def attack(name) do
     hero = HeroServer.current_state(name)
-    positions_to_attack = calculate_positions_to_attack({hero.x_pos, hero.y_pos})
-    [{hero_pid, _}] = Registry.lookup(:hero_registry, name)
 
-    HeroSupervisor
-    |> Supervisor.which_children()
-    |> Stream.map(fn {_, pid, _, _} -> pid end)
-    |> Stream.filter(fn enemy_pid ->
-      enemy = HeroServer.current_state(enemy_pid)
-      enemy_position = {enemy.x_pos, enemy.y_pos}
-      self? = enemy_pid == hero_pid
+    if hero.alive? do
+      positions_to_attack = calculate_positions_to_attack({hero.x_pos, hero.y_pos})
+      [{hero_pid, _}] = Registry.lookup(:hero_registry, name)
 
-      !self? && enemy_position in positions_to_attack
-    end)
-    |> Stream.each(&HeroServer.update_life_status(&1, false))
-    |> Stream.run()
+      HeroSupervisor
+      |> Supervisor.which_children()
+      |> Stream.map(fn {_, pid, _, _} -> pid end)
+      |> Stream.filter(fn enemy_pid ->
+        enemy = HeroServer.current_state(enemy_pid)
+        enemy_position = {enemy.x_pos, enemy.y_pos}
+        self? = enemy_pid == hero_pid
+
+        !self? && enemy_position in positions_to_attack
+      end)
+      |> Stream.each(&HeroServer.update_life_status(&1, false))
+      |> Stream.each(fn hero_pid ->
+        new_position = World.random_walkable_position()
+        HeroServer.make_alive_after_timeout(hero_pid, new_position, @respawn_timeout)
+      end)
+      |> Stream.run()
+    else
+      :ok
+    end
   end
 
   @spec calculate_positions_to_attack(Hero.position()) :: [Hero.position()]
