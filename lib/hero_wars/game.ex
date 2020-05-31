@@ -120,4 +120,31 @@ defmodule HeroWars.Game do
       {x_pos + 1, y_pos + 1}
     ]
   end
+
+  @spec list_heroes :: [Hero.t()]
+  def list_heroes do
+    HeroSupervisor
+    |> Supervisor.which_children()
+    |> Enum.map(fn {_, pid, _, _} -> HeroServer.current_state(pid) end)
+  end
+
+  @type world_with_current_hero_and_enemies :: [
+          [:wall | :empty | {:hero | :enemy, Hero.name(), boolean}]
+        ]
+  @spec world_with_current_hero_and_enemies(Hero.t(), [Hero.t()]) ::
+          world_with_current_hero_and_enemies
+  def world_with_current_hero_and_enemies(hero, enemies) do
+    world = World.get_world_map()
+
+    world_with_enemies =
+      Enum.reduce(enemies, world, fn enemy, world ->
+        line = Enum.at(world, enemy.y_pos)
+        line_with_enemy = List.replace_at(line, enemy.x_pos, {:enemy, enemy.name, enemy.alive?})
+        List.replace_at(world, enemy.y_pos, line_with_enemy)
+      end)
+
+    line = Enum.at(world_with_enemies, hero.y_pos)
+    line_with_current_hero = List.replace_at(line, hero.x_pos, {:hero, hero.name, hero.alive?})
+    List.replace_at(world_with_enemies, hero.y_pos, line_with_current_hero)
+  end
 end

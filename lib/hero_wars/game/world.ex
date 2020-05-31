@@ -49,4 +49,13 @@ defmodule HeroWars.Game.World do
       random_walkable_position()
     end
   end
+
+  @spec get_world_map :: [[:empty | :wall]]
+  def get_world_map do
+    Enum.map(@world, fn line -> Enum.map(line, &handle_map_tile/1) end)
+  end
+
+  @spec handle_map_tile(non_neg_integer) :: :empty | :wall
+  defp handle_map_tile(0), do: :empty
+  defp handle_map_tile(1), do: :wall
 end
