@@ -10,7 +10,7 @@ defmodule HeroWars.Game.HeroServer do
   @typep start_link_arg :: {:name, Hero.name()} | {:position, Hero.position()}
   @spec start_link([start_link_arg]) :: {:ok, pid} | {:error, term} | :ignore
   def start_link([name: name, position: position] = _args) do
-    GenServer.start_link(HeroServer, position, name: via_tuple(name))
+    GenServer.start_link(HeroServer, {name, position}, name: via_tuple(name))
   end
 
   @spec current_state(pid | Hero.name()) :: Hero.t()
@@ -41,8 +41,8 @@ defmodule HeroWars.Game.HeroServer do
   # Callbacks #
   #############
   @impl true
-  def init(position) do
-    hero = Hero.create(position)
+  def init({name, position}) do
+    hero = Hero.create(name, position)
     {:ok, hero}
   end
 
