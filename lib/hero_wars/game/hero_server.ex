@@ -74,6 +74,7 @@ defmodule HeroWars.Game.HeroServer do
   end
 
   def handle_info(:update_world, state) do
+    HeroWars.update_world()
     {:noreply, state}
   end
 end
