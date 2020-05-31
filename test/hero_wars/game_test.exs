@@ -3,7 +3,7 @@ defmodule HeroWars.GameTest do
   alias HeroWars.Game.Hero
   alias Support.TestUtils
 
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   defmodule WorldSuccess do
     def random_walkable_position do

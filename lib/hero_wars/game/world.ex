@@ -24,7 +24,7 @@ defmodule HeroWars.Game.World do
   @world_height length(@world)
 
   @spec walkable?(Hero.position()) :: boolean
-  def walkable?({x_pos, y_pos}) do
+  def walkable?({x_pos, y_pos} = _position) do
     tile = @world |> Enum.at(y_pos) |> Enum.at(x_pos)
     tile == 0
   end
